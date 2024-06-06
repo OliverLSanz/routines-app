@@ -62,7 +62,7 @@ function getOrCreateDay(state, date){
     weekliesSelected: false,
     entries: entryAdapter.getInitialState(),
   }
-  logAdapter.addOne(state, log)
+  state = logAdapter.addOne(state, log)
   return log
 }
 
@@ -70,7 +70,7 @@ function getOrCreateEntry(id, dayLog){
   let entry = dayLog.entries.entities[id]
   if(!entry){
     entry = newEntry(id)
-    entryAdapter.addOne(dayLog.entries, entry)
+    dayLog.entries = entryAdapter.addOne(dayLog.entries, entry)
   }
   return entry
 }
@@ -90,13 +90,13 @@ const logSlice = createSlice({
       /* add a single entry to a daily log */
       const { date, entry } = action.payload
       const selectedDay = getOrCreateDay(state, serializeDate(date))
-      entryAdapter.addOne(selectedDay.entries, entry)
+      selectedDay.entries = entryAdapter.addOne(selectedDay.entries, entry)
     },
     upsertEntry(state, action){
       const { date, entry } = action.payload
       const day = serializeDate(date)
       const dayLog = getOrCreateDay(state, day).entries
-      entryAdapter.upsertOne(dayLog, entry)
+      dayLog = entryAdapter.upsertOne(dayLog, entry)
     },
     replaceEntry(state, action){
       const { date, entry } = action.payload
@@ -108,35 +108,20 @@ const logSlice = createSlice({
       const { date, entryId } = action.payload
       const today = serializeDate(date)
       const todaysLog = getOrCreateDay(state, today).entries
-      entryAdapter.removeOne(todaysLog, entryId)
+      todaysLog = entryAdapter.removeOne(todaysLog, entryId)
     },
     toggleCompleted(state, action){
       // select data
       const { date, id } = action.payload
       const log = getOrCreateDay(state, serializeDate(date))
-      // get index of the first completed entry in that date
-      let firstCompletedIndex = 0
-      for(let i = 0; i < log.entries.ids.length; i++){
-        if(log.entries.entities[log.entries.ids[i]].completed){
-          firstCompletedIndex = i
-          break
-        }
-      }
-
       const entry = getOrCreateEntry(id, log)
 
       // toggle the completed status of the entry
-      if(!entry.completed){
-        entry.completed = true
-      }else if(entry.completed){
-        entry.completed = null
-      }else{
+      if(entry.completed === null){
         entry.completed = serializeDate(DateTime.now())
+      }else{
+        entry.completed = null
       }
-
-      // move the entry to its new position
-      const newPosition = entry.completed? -1 : firstCompletedIndex
-      log.entries.ids = arrayMove(log.entries.ids, log.entries.ids.indexOf(id), newPosition)
     },
     startTimer(state, action){
       const { date, id } = action.payload
@@ -169,7 +154,7 @@ const logSlice = createSlice({
     },
     deleteLog(state, action){
       const { isoDate } = action.payload
-      logAdapter.removeOne(state, isoDate)
+      state = logAdapter.removeOne(state, isoDate)
     },
     capAllTimers(state, action){
       const { isoDate, capIsoDate } = action.payload

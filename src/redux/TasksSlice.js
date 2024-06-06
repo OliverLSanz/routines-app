@@ -44,7 +44,7 @@ function getOrCreateDay(state, date){
     tasksAdded: false,
     tasks: entityAdapter.getInitialState({nextId: 0}),
   }
-  entityAdapter.addOne(state, dateEntry)
+  state = entityAdapter.addOne(state, dateEntry)
   return dateEntry
 }
 
@@ -60,7 +60,7 @@ const tasksSlice = createSlice({
     addTask(state, action){
       const { date, task } = action.payload
       const selectedDay = getOrCreateDay(state, serializeDate(date))
-      entityAdapter.addOne(selectedDay.tasks, {...task, id: selectedDay.tasks.nextId})
+      selectedDay.tasks = entityAdapter.addOne(selectedDay.tasks, {...task, id: selectedDay.tasks.nextId})
       selectedDay.tasks.nextId += 1
     },
     toggleTask(state, action){
@@ -68,12 +68,12 @@ const tasksSlice = createSlice({
       const selectedDay = getOrCreateDay(state, serializeDate(date))
       const task = selectedDay.tasks.entities[id]
       const completed = task.completed? null : serializeDate(DateTime.now())
-      entityAdapter.updateOne(selectedDay.tasks, {id: task.id, changes: { completed }})
+      selectedDay.tasks = entityAdapter.updateOne(selectedDay.tasks, {id: task.id, changes: { completed }})
     },
     deleteTask(state, action){
       const { date, id } = action.payload
       const selectedDay = getOrCreateDay(state, serializeDate(date))
-      entityAdapter.removeOne(selectedDay.tasks, id)
+      selectedDay.tasks = entityAdapter.removeOne(selectedDay.tasks, id)
     },
     setState(state, action){
       const { newState } = action.payload

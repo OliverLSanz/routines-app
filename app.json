@@ -31,7 +31,7 @@
         "backgroundColor": "#536BAC"
       },
       "package": "app.goaliath",
-      "versionCode": 10
+      "versionCode": 11
     },
     "web": {
       "favicon": "./assets/favicon.png"
