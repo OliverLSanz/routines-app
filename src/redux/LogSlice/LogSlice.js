@@ -188,7 +188,7 @@ const logSlice = createSlice({
 
       if( entry.repetitions.length < repetitions ){
         for(let i = entry.repetitions.length; i < repetitions; i++){
-          entry.repetitions.push(serializeDate(DateTime.now()))
+          entry.repetitions = [DateTime.now(), ...entry.repetitions]
         }
       }else if( entry.repetitions.length > repetitions ){
         entry.repetitions = entry.repetitions.slice(0, repetitions)
