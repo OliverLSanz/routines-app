@@ -33,6 +33,7 @@
     "expo-file-system": "~16.0.7",
     "expo-linear-gradient": "~12.7.2",
     "expo-localization": "~14.8.3",
+    "expo-navigation-bar": "~2.8.1",
     "expo-notifications": "~0.27.6",
     "expo-sharing": "~11.10.0",
     "expo-splash-screen": "~0.26.4",
