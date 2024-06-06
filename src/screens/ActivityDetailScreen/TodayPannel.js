@@ -63,7 +63,7 @@ export const TodayPannelModal = withTheme(({
               <IconButton 
                 style={{marginRight: 0, height: 50, width: 50}}
                 icon={
-                () => <IonIcon color={theme.colors.onSurface} size={30} name={"md-open-outline"}/>
+                () => <IonIcon color={theme.colors.onSurface} size={30} name={"open-outline"}/>
                 } 
                 onPress={() => { 
                   onDismiss()    
