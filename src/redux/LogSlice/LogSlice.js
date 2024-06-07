@@ -89,25 +89,25 @@ const logSlice = createSlice({
     addEntry(state, action){
       /* add a single entry to a daily log */
       const { date, entry } = action.payload
-      const selectedDay = getOrCreateDay(state, serializeDate(date))
+      let selectedDay = getOrCreateDay(state, serializeDate(date))
       selectedDay.entries = entryAdapter.addOne(selectedDay.entries, entry)
     },
     upsertEntry(state, action){
       const { date, entry } = action.payload
       const day = serializeDate(date)
-      const dayLog = getOrCreateDay(state, day).entries
+      let dayLog = getOrCreateDay(state, day).entries
       dayLog = entryAdapter.upsertOne(dayLog, entry)
     },
     replaceEntry(state, action){
       const { date, entry } = action.payload
       const day = serializeDate(date)
-      const dayLog = getOrCreateDay(state, day).entries.entities
+      let dayLog = getOrCreateDay(state, day).entries.entities
       dayLog[entry.id] = entry
     },
     deleteEntry(state, action){
       const { date, entryId } = action.payload
       const today = serializeDate(date)
-      const todaysLog = getOrCreateDay(state, today).entries
+      let todaysLog = getOrCreateDay(state, today).entries
       todaysLog = entryAdapter.removeOne(todaysLog, entryId)
     },
     toggleCompleted(state, action){

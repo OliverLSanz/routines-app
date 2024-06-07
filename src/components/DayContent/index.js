@@ -1,6 +1,6 @@
 import React from 'react';
+import { View } from 'react-native'
 import { useSelector } from 'react-redux';
-import { ScrollView } from 'react-native'
 import {
   BottomScreenPadding
 } from '../../components';
@@ -14,16 +14,21 @@ import { selectVisibleActivities } from '../../redux/selectors';
 import { getToday, serializeDate } from '../../time';
 import { EmptyPastWarning, FutureWarning, NoActivitiesWarning, NothingForTodayWarning, NoActiveActivitiesWarning } from './warnings'
 import { selectAllActiveActivities } from '../../redux/selectors';
-import { selectAllActivities } from '../../redux';
+import { selectAllActivities, selectEntryByActivityIdAndDate } from '../../redux';
 import { DayContentList } from './DayContentList';
-import Animated, { Layout } from 'react-native-reanimated'
 
+// data fetch
 function dayContentSelector(state, date){
   const dayStartHour = state.settings.dayStartHour
   const visibleActivities = selectVisibleActivities(state, date)
 
+  const visibleActivitiesAndEntries = visibleActivities.map(activity => {
+    const entry = selectEntryByActivityIdAndDate(state, activity.id, date)
+    return {activity, entry}
+  })
+
   let todayScreenState;
-  if(visibleActivities.length != 0){
+  if(visibleActivitiesAndEntries.length != 0){
     todayScreenState = 'normal'
   } else if (areTherePendingWeeklyActivities(state, date)) {
     todayScreenState = 'only-weekly-activities'
@@ -37,7 +42,7 @@ function dayContentSelector(state, date){
 
   return {
     dayStartHour,
-    visibleActivities,
+    visibleActivitiesAndEntries,
     todayScreenState,
     today: getToday(dayStartHour),
     taskList: selectAllTasksByDate(state, date),
@@ -51,7 +56,7 @@ function dayContentSelector(state, date){
 export const DayContent = ({ date }) => {
   const {
     taskList,
-    visibleActivities,
+    visibleActivitiesAndEntries,
     todayScreenState,
     today,
     tasksAdded,
@@ -66,28 +71,30 @@ export const DayContent = ({ date }) => {
     'future'
   )
 
-  return (
-    <Animated.View style={{flex: 1}} layout={Layout.delay(100)}>
-      <ScrollView style={{flex: 1}}>
-        { timeStatus == 'past' && visibleActivities.length == 0 && taskList.length == 0 ? <EmptyPastWarning /> : null }
-        { timeStatus == 'future' ? <FutureWarning /> : null }
-        { timeStatus == 'today' && todayScreenState=='no-activities' ? <NoActivitiesWarning /> : null }
-        { timeStatus == 'today' && todayScreenState=='no-active-activities' ? <NoActiveActivitiesWarning /> : null }
-        { timeStatus == 'today' && todayScreenState=='nothing-for-today' ? <NothingForTodayWarning/> : null }
+  const listHeaderComponent = (
+    timeStatus == 'past' && visibleActivitiesAndEntries.length == 0 && taskList.length == 0 ? <EmptyPastWarning />
+    : timeStatus == 'future' ? <FutureWarning />
+    : timeStatus == 'today' && todayScreenState=='no-activities' ? <NoActivitiesWarning />
+    : timeStatus == 'today' && todayScreenState=='no-active-activities' ? <NoActiveActivitiesWarning />
+    : timeStatus == 'today' && todayScreenState=='nothing-for-today' ? <NothingForTodayWarning/>
+    : null
+  )
 
-        <DayContentList
-          date={date}
-          visibleActivities={visibleActivities}
-          taskList={taskList}
-          tasksAdded={tasksAdded}
-          areWeekliesSelectedTodayResult={areWeekliesSelectedTodayResult}
-          areTherePendingWeeklyActivitiesResult={areTherePendingWeeklyActivitiesResult}
-          areThereWeeklyActivitiesResult={areThereWeeklyActivitiesResult}
-          timeStatus={timeStatus}
-        />
-        <BottomScreenPadding />
-      </ScrollView>
-    </Animated.View>
+  return (
+    <View style={{flex: 1}}>
+      <DayContentList
+        listHeaderComponent={listHeaderComponent}
+        listFooterComponent={BottomScreenPadding}
+        date={date}
+        visibleActivitiesAndEntries={visibleActivitiesAndEntries}
+        taskList={taskList}
+        tasksAdded={tasksAdded}
+        areWeekliesSelectedTodayResult={areWeekliesSelectedTodayResult}
+        areTherePendingWeeklyActivitiesResult={areTherePendingWeeklyActivitiesResult}
+        areThereWeeklyActivitiesResult={areThereWeeklyActivitiesResult}
+        timeStatus={timeStatus}
+      />
+    </View>
   );
 }
 

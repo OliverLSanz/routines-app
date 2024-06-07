@@ -1,22 +1,24 @@
 import React from 'react';
-import { View } from 'react-native'
 import { withTheme } from 'react-native-paper'
+import { FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
-  SelectWeekliesListItem, SelectTasksListItem, TaskListItem, BottomScreenPadding
+  SelectWeekliesListItem, SelectTasksListItem, TaskListItem
 } from '../../components';
 import { TodayScreenItem } from '../../activityHandler'
 
 export const DayContentList = withTheme(({
   theme,
   date,
-  visibleActivities,
+  visibleActivitiesAndEntries,
   taskList,
   tasksAdded,
   areWeekliesSelectedTodayResult,
   areTherePendingWeeklyActivitiesResult,
   areThereWeeklyActivitiesResult,
-  timeStatus
+  timeStatus,
+  listHeaderComponent,
+  listFooterComponent
 }) => {
     // setup hooks
     const navigation = useNavigation()
@@ -26,6 +28,7 @@ export const DayContentList = withTheme(({
       ?
         [{
           type: 'raw',
+          key: 'selectWeekliesItem',
           completed: areWeekliesSelectedTodayResult || !areTherePendingWeeklyActivitiesResult,
           item: <SelectWeekliesListItem
                   date={date}
@@ -33,7 +36,6 @@ export const DayContentList = withTheme(({
                   navigation={navigation}
                   disabled={timeStatus != 'today'}
                   { ...(areTherePendingWeeklyActivitiesResult ? {} : {color: theme.colors.completedWeekliesSelector})}
-                  key='selectWeekliesItem'
                 />
         }]
         : []
@@ -43,22 +45,19 @@ export const DayContentList = withTheme(({
       timeStatus == 'today' ?
         [{
           type: 'raw',
+          key: 'tasksSelectorItem',
           completed: tasksAdded,
           item: <SelectTasksListItem
                   checked={tasksAdded}
                   onPress={() => {navigation.navigate('AddTasks')}}
-                  key='tasksSelectorItem'
                 />
         }]
         : []
     )
-
-    const activityItems = visibleActivities.map(item => ({ type: 'activity', id: item.id, completed: false }))
+    const activityItems = visibleActivitiesAndEntries.map(item => ({ type: 'activity', id: item.activity.id, completed: item.entry.completed }))
     const taskItems = taskList.map(item => ({ type: 'task', item: item, completed: item.completed }))
-
-    let listItems = activityItems.concat(taskItems)
-    listItems = listItems.concat(weekliesSelectorItem)
-    listItems = listItems.concat(tasksSelectorItem)
+    
+    const listItems = [...activityItems, ...taskItems, ...weekliesSelectorItem, ...tasksSelectorItem]
 
     // sort items
     listItems.sort((a, b) => {
@@ -79,19 +78,23 @@ export const DayContentList = withTheme(({
       return 0
     })
 
-    function renderItem(item){
+    function renderItem({ item }){
       if (item.type == 'activity'){
-        return <TodayScreenItem activityId={item.id} date={date} key={'activity'+item.id} />
+        return <TodayScreenItem activityId={item.id} date={date}/>
       } else if (item.type == 'task'){
-        return <TaskListItem task={item.item} date={date} key={'task'+item.item.name}/>
+        return <TaskListItem task={item.item} date={date}/>
       } else if (item.type == 'raw'){
         return item.item
       }
     }
 
     return (
-      <View>
-        { listItems.map(item => renderItem(item)) }
-      </View>
+      <FlatList
+        renderItem={renderItem}
+        data={listItems}
+        keyExtractor={(item, index) => item.type + '-' + (item.key ?? item.id ?? item.item?.id ?? index)}
+        ListHeaderComponent={listHeaderComponent}
+        ListFooterComponent={listFooterComponent}
+      />
     )
 })
