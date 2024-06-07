@@ -48,15 +48,11 @@ const SettingsScreen = withTheme(({ theme, settings, setLanguage, navigation, st
      : t('settings.todaySnackbar', {startHour: dateTime.toFormat('T').toString()}))
   };
 
-  const readFile = () => {
-    DocumentPicker.getDocumentAsync({type: 'application/oda'})
-      .then(({ type, uri }) => FileSystem.readAsStringAsync(uri)
-        .then((text) => {
-          setImportedStateText(text)
-          setImportDialogVisible(true)
-          }
-        )
-      )
+  const readFile = async () => {
+    const result = await DocumentPicker.getDocumentAsync({type: 'application/oda'})
+    const text = await FileSystem.readAsStringAsync(result.assets[0].uri)
+    setImportedStateText(text)
+    setImportDialogVisible(true)
   }
 
   function importStateFromText(text){
