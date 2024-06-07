@@ -3,6 +3,8 @@ import { DateTime } from 'luxon'
 import { serializeDate, getNewestDate } from './../time'
 import { newEntry } from './../util'
 
+import { dismissAllNotificationsAsync } from 'expo-notifications'
+
 import {
   selectAllActivities, setActivity, selectActivityById, 
   setState as setActivitiesState, moveAllActivityRecordsOneDayBack,
@@ -163,6 +165,8 @@ export function updateLogs(){
     if(newestLogDate < today && areThereOpenTimers(state, serializeDate(newestLogDate))){
       // cap all open timers of the previous day
       dispatch(capAllTimers({ date: newestLogDate }))
+      // also dismiss the "you are working on" sticky notification
+      dismissAllNotificationsAsync();
     }
   }
 }
